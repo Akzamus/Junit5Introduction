@@ -1,12 +1,17 @@
 package org.example.JUnit5;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,7 +66,7 @@ class FruitsBasketTest {
                 "Removing a fruit from the basket");
     }
 
-    @RepeatedTest(3)
+    @RepeatedTest(name = "Repeated test (remove)", value = 3)
     void remove_TestForTimeout() {
         assertTimeout(Duration.ofMillis(1),
                 () -> basket.remove(apple),
@@ -90,8 +95,32 @@ class FruitsBasketTest {
     }
 
     @Test
+    @Disabled
     void containsFruit() {
         assertTrue(basket.containsFruit(apple), "Checking the availability of fruit");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Banana", "Kiwi", "Peach"})
+    void getFruitByName_NotExists_Parameterized(String fruitName) {
+        assertNull(basket.getFruitByName(fruitName), "Getting a fruit by name");
+    }
+
+    @ParameterizedTest
+    @MethodSource("generator")
+    void containsFruit_Parameterized(Fruit fruit, boolean isExist) {
+        assertEquals(basket.containsFruit(fruit), isExist,"Checking the availability of fruit");
+    }
+
+    private static Stream<Arguments> generator() {
+        return Stream.of(
+                Arguments.of(new Fruit("Apple", 120), true),
+                Arguments.of(new Fruit("Orange", 120), true),
+                Arguments.of(new Fruit("Pear", 120), true),
+                Arguments.of(new Fruit("Apple", 100),false),
+                Arguments.of(new Fruit("Banana", 120), false),
+                Arguments.of(new Fruit("Pear", 130), false)
+        );
     }
 
     @Test
